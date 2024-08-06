@@ -8,7 +8,7 @@ PVector previousMouse;
 
 HashMap<String, Chunk> chunks;
 
-final int WATER = #0000FF, GRASS = #00FF00, SAND = #FFE51F, CORAL = #E3AFFF, STONE = #808080, CACTUS = #008000;
+final int WATER = #40BCFC, GRASS = #0FCB06, SAND = #FFF8B4, CORAL = #8590F0, STONE = #808080, CACTUS = #008000, SHALLOW_WATER = #98F7FF, TREE = #0A3B24;
 ArrayList<Integer> colors;
 
 Map map;
@@ -28,6 +28,8 @@ void setup() {
   colors.add(CORAL);
   colors.add(STONE);
   colors.add(CACTUS);
+  colors.add(SHALLOW_WATER);
+  colors.add(TREE);
   
   chunks = new HashMap<String, Chunk>();
   map = new Map();

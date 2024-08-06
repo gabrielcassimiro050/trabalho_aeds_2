@@ -12,13 +12,17 @@ class Chunk {
 
   void generateChunk() {
     tiles = new int[chunkSize/tileSize][chunkSize/tileSize];
-    
+
     for (int x = 0; x < chunkSize / tileSize; x++) {
       for (int y = 0; y < chunkSize / tileSize; y++) {
-        float noise = noise((chunkX * chunkSize + x * tileSize) * noiseScale, (chunkY * chunkSize + y * tileSize) * noiseScale, seed);
+        float noise = noise((chunkX * chunkSize + x * tileSize + 10000) * noiseScale, (chunkY * chunkSize + y * tileSize + 10000) * noiseScale, seed);
         if (noise < 0.3) {
           tiles[x][y] = 0; // água
-        } else if (noise < 0.6) {
+        } else if(noise < 0.4){
+          tiles[x][y] = 6;
+        } else if(noise < 0.45){
+          tiles[x][y] = 2;
+        }else if (noise < 0.6) {
           tiles[x][y] = 1; // grama
         } else {
           tiles[x][y] = 2; // areia
@@ -26,10 +30,16 @@ class Chunk {
 
         // Adicionar obstáculos
 
-        if (random(1) < .005) {
-          if (tiles[x][y] == 0) tiles[x][y] = 3; // coral
-          else if (tiles[x][y] == 1) tiles[x][y] = 4; // pedra
-          else if (tiles[x][y] == 2) tiles[x][y] = 5; // cacto
+        switch(tiles[x][y]) {
+        case 0:
+          if (random(1) < .01) tiles[x][y] = 3;
+          break;
+        case 1:
+          if (random(1) < .01) tiles[x][y] = random(1) < .3 ? 7 : 4;
+          break;
+        case 2:
+          if (random(1) < .01) tiles[x][y] = 5;
+          break;
         }
       }
     }
@@ -66,14 +76,14 @@ class Chunk {
         if (screenX + tileSize < 0 || screenX > width || screenY + tileSize < 0 || screenY > height) {
           continue;
         }
-        
+
         noStroke();
-        
+
         rectMode(CENTER);
-        
+
         fill(colors.get(tiles[x][y]));
         rect(screenX, screenY, tileSize+1, tileSize+1);
-       
+
         rectMode(CORNER);
       }
     }
