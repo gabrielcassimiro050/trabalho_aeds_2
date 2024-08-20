@@ -1,53 +1,63 @@
 class Chunk {
   // ...
   int chunkX, chunkY;
-  int[][] tiles;
+  Tile[][] tiles;
 
 
   Chunk(int x, int y) {
     chunkX = x;
     chunkY = y;
-    tiles = new int[chunkSize/tileSize][chunkSize/tileSize];
+    tiles = new Tile[chunkSize/tileSize][chunkSize/tileSize];
   }
 
   void generateChunk() {
-    tiles = new int[chunkSize/tileSize][chunkSize/tileSize];
+    tiles = new Tile[chunkSize/tileSize][chunkSize/tileSize];
 
     for (int x = 0; x < chunkSize / tileSize; x++) {
       for (int y = 0; y < chunkSize / tileSize; y++) {
         float noise = noise((chunkX * chunkSize + x * tileSize + 10000) * noiseScale, (chunkY * chunkSize + y * tileSize + 10000) * noiseScale, seed);
-        if (noise < 0.3) {
-          tiles[x][y] = 0; // água
-        } else if(noise < 0.4){
-          tiles[x][y] = 6;
-        } else if(noise < 0.45){
-          tiles[x][y] = 2;
-        }else if (noise < 0.6) {
-          tiles[x][y] = 1; // grama
+        tiles[x][y] = new Tile(x, y);
+
+        if (noise < currentConfig.water) {
+          tiles[x][y].id = WATER; // água
+        } else if (noise < currentConfig.shallow_water) {
+          tiles[x][y].id = SHALLOW_WATER; // água rasa
+        } else if (noise < currentConfig.sand) {
+          tiles[x][y].id = SAND; // areia
+        } else if (noise < currentConfig.grass) {
+          tiles[x][y].id = GRASS; // grama
         } else {
-          tiles[x][y] = 2; // areia
+          tiles[x][y].id = SAND; // areia
         }
 
         // Adicionar obstáculos
 
-        switch(tiles[x][y]) {
+        switch(tiles[x][y].id) {
         case 0:
-          if (random(1) < .01) tiles[x][y] = 3;
+          if (random(1) < .01) tiles[x][y].id = CORAL;
           break;
         case 1:
-          if (random(1) < .01) tiles[x][y] = random(1) < .3 ? 7 : 4;
+          if (random(1) < .03) tiles[x][y].id = random(1) < .85 ? TREE : STONE;
           break;
         case 2:
-          if (random(1) < .01) tiles[x][y] = 5;
+          if (random(1) < .01) tiles[x][y].id = random(1) < .3 ? STONE : CACTUS;
           break;
         }
       }
     }
+
+
+    //for (int x = 0; x < chunkSize / tileSize; x++) {
+    //  for (int y = 0; y < chunkSize / tileSize; y++) {
+    //    int noise = round(noise((chunkX * chunkSize + x * tileSize + 10000) * noiseScale, (chunkY * chunkSize + y * tileSize + 10000) * noiseScale, treeSeed));
+    //    if(tiles[x][y].id == 1) tiles[x][y].id = noise==0 ? GRASS : TREE;
+    //  }
+    //}
   }
 
   int getTile(int localX, int localY) {
     if (localX >= 0 && localX < tiles.length && localY >= 0 && localY < tiles[0].length) {
-      return tiles[localX][localY];
+      return tiles[localX][localY].id;
     } else {
       return -1;
     }
@@ -78,13 +88,8 @@ class Chunk {
         }
 
         noStroke();
-
-        rectMode(CENTER);
-
-        fill(colors.get(tiles[x][y]));
+        fill(colors.get(tiles[x][y].id));
         rect(screenX, screenY, tileSize+1, tileSize+1);
-
-        rectMode(CORNER);
       }
     }
   }

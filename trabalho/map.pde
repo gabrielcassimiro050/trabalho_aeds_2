@@ -1,17 +1,17 @@
 class Map {
   // ...
-  int offsetX, offsetY;
+  
 
   void drag(float _offsetX, float _offsetY) {
     offsetX += _offsetX;
     offsetY += _offsetY;
   }
   
-  int gridPosX(int xScreen) {
+  int gridPosX(float xScreen) {
     return floor((-offsetX + xScreen) / tileSize);
   }
 
-  int gridPosY(int yScreen) {
+  int gridPosY(float yScreen) {
     return floor((-offsetY + yScreen) / tileSize);
   }
 
