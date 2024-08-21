@@ -21,11 +21,11 @@ Config currentConfig;
 Map map;
 
 Player player;
+int searchingArea = 50;
 
-
-boolean isObstacle(Tile x){
+boolean isObstacle(int x){
   for(int o : obstacles){
-    if(x.id==o) return true;
+    if(x==o) return true;
   }
   return false;
 }
@@ -37,7 +37,7 @@ void updateScreen(){
 }
 
 void setup() {
-  size(1650, 750);
+  size(750, 750);
   
   //Seeds
   seed = random(1000);
@@ -45,7 +45,7 @@ void setup() {
   
   //Map Configs
   configs = new HashMap<String, Config>();
-  configs.put("Ocean", new Config(.6, .7, .9, .99));
+  configs.put("Ocean", new Config(.5, .6, .65, .99));
   configs.put("Desert", new Config(.2, .3, .9, .99));
   configs.put("Normal", new Config(.3, .4, .5, .8));
   
@@ -77,7 +77,7 @@ void setup() {
 void keyReleased(){
   switch(key){
    case 'p':
-   println(player.pos);
+   //println(player.pos);
      offsetX = width/2-(int)player.pos.x*tileSize;
      offsetY = height/2-(int)player.pos.y*tileSize;
      updateScreen();
@@ -98,7 +98,7 @@ void mousePressed(){
 void draw() {
   //println(offsetX +","+offsetY);
   
-  println(zoom);
+  //println(zoom);
   if(mousePressed){
     map.drag((previousMouse.x-mouseX)/10.0+50, (previousMouse.y-mouseY)/10.0);
     updateScreen();
