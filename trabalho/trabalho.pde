@@ -96,12 +96,31 @@ void mousePressed() {
   previousMouse = new PVector(mouseX, mouseY);
 }
 
+void mouseReleased(){
+  // Supondo que você tenha as posições do jogador e do mouse
+  float playerX = player.pos.x;
+  float playerY = player.pos.y;
+  float mouseXPos = map.gridPosX(mouseX);
+  float mouseYPos = map.gridPosY(mouseY);
+  
+  // Calcula a distância em cada eixo
+  float deltaX = abs(playerX - mouseXPos);
+  float deltaY = abs(playerY - mouseYPos);
+  
+  // Define searchingArea como a maior distância entre os eixos
+  searchingArea = (int)((deltaX > deltaY) ? deltaX : deltaY)*2;
+  player.setGrid();
+  updateScreen();
+  println(searchingArea);
+}
+
 void draw() {
   //println(offsetX +","+offsetY);
 
   //println(zoom);
   if (mousePressed) {
-    map.drag((width/2.0-mouseX)/10.0, (height/2.0-mouseY)/10.0);
+    if (mouseButton == RIGHT)
+      map.drag((width/2.0-mouseX)/10.0, (height/2.0-mouseY)/10.0);
     player.setGrid();
     updateScreen();
   }
