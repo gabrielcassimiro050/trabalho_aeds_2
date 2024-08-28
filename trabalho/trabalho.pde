@@ -22,8 +22,10 @@ Config currentConfig;
 
 Map map;
 Player player;
+Boat boat;
 
 int searchingArea;
+int toleranceRange = 30;
 
 ArrayList<PVector> caminho;
 
@@ -40,6 +42,7 @@ void updateScreen() {
   filter(GRAY);
   map.display();
   player.show();
+  boat.show();
 }
 
 void setup() {
@@ -87,10 +90,12 @@ void setup() {
     pY = (int) random(100) + 10000;
   } while (isObstacle(map.getTileValue(pX, pY)));
   player = new Player(pX, pY);
+  boat = new Boat(pX+(int)random(10), pY+(int)random(10));
 
   offsetX = width / 2 - (int) player.pos.x * tileSize;
   offsetY = height / 2 - (int) player.pos.y * tileSize;
-
+  
+  
   caminho = new ArrayList<PVector>();
   updateScreen();
   previousMouse = new PVector(mouseX, mouseY);
@@ -120,7 +125,7 @@ void mouseReleased() {
     int deltaX = (int) abs(player.pos.x - map.gridPosX(mouseX));
     int deltaY = (int) abs(player.pos.y - map.gridPosY(mouseY));
 
-    searchingArea = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + 1;
+    searchingArea = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + toleranceRange;
     player.setGrid();
     
     PVector m = player.translateToGridPosition(new PVector(map.gridPosX(mouseX), map.gridPosY(mouseY)));

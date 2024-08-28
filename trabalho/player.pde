@@ -71,23 +71,29 @@ class Player {
 
       for (int k = 0; k < 4; k++) {
         PVector vizinho = new PVector(atual.x + dx[k], atual.y + dy[k]);
-        if (vizinho.x < 0 || vizinho.x >= searchingArea || vizinho.y < 0 || vizinho.y >= searchingArea) continue;
-        if (fechados.contains(vizinho)) continue;
-        
-        PVector gridAtual = translateGridPosition(atual);
-        float value = map.getTileValue((int)gridAtual.x, (int)gridAtual.y);
-        float tentativeGScore = gScore.getOrDefault(atual, Float.MAX_VALUE) + dist(atual.x, atual.y, vizinho.x, vizinho.y);
+        PVector gridVizinho = translateGridPosition(vizinho);
+        if (!isObstacle(map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y))) {
+          
+          if (vizinho.x < 0 || vizinho.x >= searchingArea || vizinho.y < 0 || vizinho.y >= searchingArea) continue;
+          if (fechados.contains(vizinho)) continue;
 
-        if (!abertos.contains(vizinho) || tentativeGScore < gScore.getOrDefault(vizinho, Float.MAX_VALUE)) {
-          // Atualiza o caminho para o vizinho
-          cameFrom.put(vizinho, atual);
-          gScore.put(vizinho, tentativeGScore);
-          hScore.put(vizinho, dist(vizinho.x, vizinho.y, destino.x, destino.y));
-          fScore.put(vizinho, gScore.get(vizinho) + hScore.get(vizinho));
+          //PVector gridAtual = translateGridPosition(atual);
+          
+            float weight = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
+          //float value = map.getTileValue((int)gridAtual.x, (int)gridAtual.y)+map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
+          float tentativeGScore = gScore.getOrDefault(atual, Float.MAX_VALUE) + dist(atual.x, atual.y, vizinho.x, vizinho.y)*weight;
 
-          // Adiciona o vizinho à lista de abertos
-          if (!abertos.contains(vizinho)) {
-            abertos.add(vizinho);
+          if (!abertos.contains(vizinho) || tentativeGScore < gScore.getOrDefault(vizinho, Float.MAX_VALUE)) {
+            // Atualiza o caminho para o vizinho
+            cameFrom.put(vizinho, atual);
+            gScore.put(vizinho, tentativeGScore);
+            hScore.put(vizinho, dist(vizinho.x, vizinho.y, destino.x, destino.y));
+            fScore.put(vizinho, gScore.get(vizinho) + hScore.get(vizinho));
+
+            // Adiciona o vizinho à lista de abertos
+            if (!abertos.contains(vizinho)) {
+              abertos.add(vizinho);
+            }
           }
         }
       }
@@ -101,14 +107,14 @@ class Player {
   float dist(float x1, float y1, float x2, float y2) {
     return (float) Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   }
-  
+
   PVector translateGridPosition(PVector d) {
     // Coordenadas globais no grid do mapa
     int globalX = (int)pos.x - searchingArea / 2 + (int) d.x;
     int globalY = (int)pos.y - searchingArea / 2 + (int) d.y;
     return new PVector(globalX, globalY);
   }
-  
+
   PVector translateToGridPosition(PVector d) {
     // Calcula a posição local no grid do Player
     int localX = (int)d.x - (int) pos.x + searchingArea / 2;
@@ -124,7 +130,8 @@ class Player {
   void show() {
     float screenX = pos.x * tileSize + offsetX;
     float screenY = pos.y * tileSize + offsetY;
-
+    //stroke(0);
+    //strokeWeight(1);
     fill(#FF0000);
     rect(screenX, screenY, tileSize, tileSize);
 
@@ -137,7 +144,7 @@ class Player {
         //fill(colors.get(grid[x][y]));
         //rect(screenX, screenY, tileSize, tileSize);
         fill(0);
-        text(grid[x][y], screenX+tileSize/2.0, screenY+tileSize/2.0);
+        //text(grid[x][y], screenX+tileSize/2.0, screenY+tileSize/2.0);
       }
     }
     // Desenhar o caminho em vermelho
