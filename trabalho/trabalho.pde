@@ -33,7 +33,7 @@ boolean isObstacle(int x) {
   }
   return false;
 
-  //falta dizer que águe é obstáculo quando tá sem barco
+  //falta dizer que águe não é obstáculo quando tá com barco
 }
 
 void updateScreen() {
@@ -74,6 +74,8 @@ void setup() {
   obstacles.add(STONE);
   obstacles.add(CACTUS);
   obstacles.add(TREE);
+  obstacles.add(WATER);
+  obstacles.add(SHALLOW_WATER);
 
   // Map
   chunks = new HashMap<String, Chunk>();
