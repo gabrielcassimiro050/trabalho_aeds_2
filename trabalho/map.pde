@@ -39,7 +39,7 @@ class Map {
     return chunk.getTile(localX, localY);
   }
 
-  void display(ArrayList<PVector> caminho) {
+  void display() {
     int startX = floor(-offsetX / chunkSize) - 1;
     int startY = floor(-offsetY / chunkSize) - 1;
     int endX = startX + ceil(width / chunkSize) + 2;
@@ -57,21 +57,7 @@ class Map {
       }
     }
   
-    // Desenhar o caminho em vermelho
-    stroke(#FF0000);
-    strokeWeight(2);
-    for (int i = 0; i < caminho.size() - 1; i++) {
-      PVector pontoAtual = caminho.get(i);
-      PVector proximoPonto = caminho.get(i + 1);
-  
-      float screenXAtual = pontoAtual.x * tileSize + offsetX;
-      float screenYAtual = pontoAtual.y * tileSize + offsetY;
-      float screenXProx = proximoPonto.x * tileSize + offsetX;
-      float screenYProx = proximoPonto.y * tileSize + offsetY;
-  
-      line(screenXAtual + tileSize / 2, screenYAtual + tileSize / 2,
-           screenXProx + tileSize / 2, screenYProx + tileSize / 2);
-    }
+    
     //Ta desenhando em algum lugar longe, mas tá desenhando
   }
 

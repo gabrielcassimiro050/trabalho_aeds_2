@@ -38,7 +38,7 @@ boolean isObstacle(int x) {
 
 void updateScreen() {
   filter(GRAY);
-  map.display(caminho);
+  map.display();
   player.show();
 }
 
@@ -123,15 +123,10 @@ void mouseReleased() {
     searchingArea = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + 1;
     player.setGrid();
     
-    if(player.pos.x > map.gridPosX(mouseX) && player.pos.y > map.gridPosY(mouseY))
-      caminho = player.aEstrela(new PVector(0, 0));
-    if(player.pos.x < map.gridPosX(mouseX) && player.pos.y > map.gridPosY(mouseY))
-      caminho = player.aEstrela(new PVector(searchingArea, 0));
-    if(player.pos.x < map.gridPosX(mouseX) && player.pos.y < map.gridPosY(mouseY))
-      caminho = player.aEstrela(new PVector(0, searchingArea));
-    if(player.pos.x > map.gridPosX(mouseX) && player.pos.y < map.gridPosY(mouseY))
-      caminho = player.aEstrela(new PVector(searchingArea, searchingArea));
-
+    PVector m = player.translateToGridPosition(new PVector(map.gridPosX(mouseX), map.gridPosY(mouseY)));
+    caminho = player.aEstrela(m);
+    
+    println(caminho.size());
     updateScreen();
   }
 }

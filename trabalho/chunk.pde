@@ -15,7 +15,7 @@ class Chunk {
 
     for (int x = 0; x < chunkSize / tileSize; x++) {
       for (int y = 0; y < chunkSize / tileSize; y++) {
-        float noise = noise((chunkX * chunkSize + x * tileSize + 10000) * noiseScale, (chunkY * chunkSize + y * tileSize + 10000) * noiseScale, seed);
+        float noise = noise((chunkX * chunkSize + x * tileSize) * noiseScale, (chunkY * chunkSize + y * tileSize) * noiseScale, seed);
         
 
         if (noise < currentConfig.water) {
