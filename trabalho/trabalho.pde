@@ -123,10 +123,15 @@ void mouseReleased() {
     searchingArea = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + 1;
     player.setGrid();
     
-    // Calcula o caminho usando o método aEstrela()
-    PVector destino = new PVector(map.gridPosX(mouseX), map.gridPosY(mouseY));
-    caminho = player.aEstrela(destino);
-    
+    if(player.pos.x > map.gridPosX(mouseX) && player.pos.y > map.gridPosY(mouseY))
+      caminho = player.aEstrela(new PVector(0, 0));
+    if(player.pos.x < map.gridPosX(mouseX) && player.pos.y > map.gridPosY(mouseY))
+      caminho = player.aEstrela(new PVector(searchingArea, 0));
+    if(player.pos.x < map.gridPosX(mouseX) && player.pos.y < map.gridPosY(mouseY))
+      caminho = player.aEstrela(new PVector(0, searchingArea));
+    if(player.pos.x > map.gridPosX(mouseX) && player.pos.y < map.gridPosY(mouseY))
+      caminho = player.aEstrela(new PVector(searchingArea, searchingArea));
+
     updateScreen();
   }
 }
