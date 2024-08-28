@@ -1,6 +1,8 @@
 import java.util.HashSet;
 import java.util.Collections;
 
+int time = 0;
+
 int tileSize = 15;
 int chunkSize = 90;
 int offsetX, offsetY;
@@ -24,10 +26,10 @@ Map map;
 Player player;
 Boat boat;
 
-int searchingArea;
+int searchingArea = 100;
 int toleranceRange = 30;
 
-ArrayList<PVector> caminho;
+
 
 boolean isObstacle(int x) {
   for (int o : obstacles) {
@@ -39,10 +41,13 @@ boolean isObstacle(int x) {
 }
 
 void updateScreen() {
-  filter(GRAY);
   map.display();
   player.show();
   boat.show();
+  
+  
+   
+    
 }
 
 void setup() {
@@ -94,20 +99,18 @@ void setup() {
 
   offsetX = width / 2 - (int) player.pos.x * tileSize;
   offsetY = height / 2 - (int) player.pos.y * tileSize;
-  
-  
-  caminho = new ArrayList<PVector>();
+
   updateScreen();
   previousMouse = new PVector(mouseX, mouseY);
 }
 
 void keyReleased() {
   switch (key) {
-    case 'p':
-      offsetX = width / 2 - (int) player.pos.x * tileSize;
-      offsetY = height / 2 - (int) player.pos.y * tileSize;
-      updateScreen();
-      break;
+  case 'p':
+    offsetX = width / 2 - (int) player.pos.x * tileSize;
+    offsetY = height / 2 - (int) player.pos.y * tileSize;
+    updateScreen();
+    break;
   }
 }
 
@@ -122,27 +125,27 @@ void mousePressed() {
 
 void mouseReleased() {
   if (mouseButton == LEFT) {
-    int deltaX = (int) abs(player.pos.x - map.gridPosX(mouseX));
-    int deltaY = (int) abs(player.pos.y - map.gridPosY(mouseY));
+    //int deltaX = (int) abs(player.pos.x - map.gridPosX(mouseX));
+    //int deltaY = (int) abs(player.pos.y - map.gridPosY(mouseY));
 
-    searchingArea = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + toleranceRange;
-    player.setGrid();
-    
+    //searchingArea = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + toleranceRange;
+
     PVector m = player.translateToGridPosition(new PVector(map.gridPosX(mouseX), map.gridPosY(mouseY)));
-    caminho = player.aEstrela(m);
-    
-    println(caminho.size());
+    player.setGrid();
+    player.path = player.aEstrela(m);
+    //player.update();
+
     updateScreen();
   }
 }
 
 void draw() {
-  if (mousePressed) {
-    if (mouseButton == RIGHT)
-      map.drag((width / 2.0 - mouseX) / 10.0, (height / 2.0 - mouseY) / 10.0);
+  if (mousePressed && mouseButton == RIGHT) {
+    map.drag((width / 2.0 - mouseX) / 10.0, (height / 2.0 - mouseY) / 10.0);
     updateScreen();
   }
-
+  if(time%10==0) player.update();
   fill(255);
   text(frameRate, width - 20, 20);
+  ++time;
 }

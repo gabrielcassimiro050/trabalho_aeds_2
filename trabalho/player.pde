@@ -1,24 +1,40 @@
 import java.util.*; // Importa as classes necessárias
 class Player {
-  PVector pos;
+  PVector pos, origem;
+  Stack<PVector> path;
+
+  int pathIndex;
   float speed;
   int[][] grid;
+  boolean hasBoat;
 
   Player(float x, float y) {
     pos = new PVector(x, y);
+    origem = new PVector(x, y);
+    hasBoat = false;
+    path = new Stack<PVector>();
     setGrid();
   }
 
   void setGrid() {
     grid = new int[searchingArea][searchingArea];
+    origem = new PVector(pos.x, pos.y);
     for (int x = 0; x < searchingArea; ++x) {
       for (int y = 0; y < searchingArea; ++y) {
-        grid[x][y] = map.getTileValue(-searchingArea/2+x+(int)pos.x, -searchingArea/2+y+(int)pos.y);
+        grid[x][y] = map.getTileValue(-searchingArea/2+x+(int)origem.x, -searchingArea/2+y+(int)origem.y);
       }
     }
   }
 
-  ArrayList<PVector> aEstrela(PVector destino) {
+  Stack<PVector> aEstrela(PVector destino) {
+    pathIndex = 0;
+    path = new Stack<PVector>();
+    setGrid();
+    if (hasBoat && (obstacles.contains(WATER) || obstacles.contains(SHALLOW_WATER))) {
+      obstacles.remove(obstacles.indexOf(WATER));
+      obstacles.remove(obstacles.indexOf(SHALLOW_WATER));
+    }
+
     // Inicializa as listas de abertos e fechados
     HashMap<PVector, Float> gScore = new HashMap<>();
     HashMap<PVector, Float> hScore = new HashMap<>();
@@ -50,16 +66,16 @@ class Player {
       // Encontra o nodo com o menor fScore (PriorityQueue faz isso automaticamente)
       PVector atual = abertos.poll();
 
-      // Se o nodo atual é o destino, reconstruir o caminho
+      // Se o nodo atual é o destino, reconstruir o path
       if (atual.equals(destino)) {
-        ArrayList<PVector> caminho = new ArrayList<>();
+        Stack<PVector> pathAux = new Stack<PVector>();
         while (cameFrom.containsKey(atual)) {
-          caminho.add(atual);
+          pathAux.add(atual);
           atual = cameFrom.get(atual);
         }
-        caminho.add(inicio); // Adiciona o início ao caminho
-        Collections.reverse(caminho); // Inverte o caminho para começar do início
-        return caminho;
+        pathAux.add(inicio); // Adiciona o início ao path
+        Collections.reverse(pathAux); // Inverte o path para começar do início
+        return pathAux;
       }
 
       // Move o nodo atual dos abertos para os fechados
@@ -73,18 +89,21 @@ class Player {
         PVector vizinho = new PVector(atual.x + dx[k], atual.y + dy[k]);
         PVector gridVizinho = translateGridPosition(vizinho);
         if (!isObstacle(map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y))) {
-          
+
           if (vizinho.x < 0 || vizinho.x >= searchingArea || vizinho.y < 0 || vizinho.y >= searchingArea) continue;
           if (fechados.contains(vizinho)) continue;
 
           //PVector gridAtual = translateGridPosition(atual);
-          
-            float weight = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
+
+          float value = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
+          if (value==WATER || value==SHALLOW_WATER) value = 0;
+
+          float weight = value;
           //float value = map.getTileValue((int)gridAtual.x, (int)gridAtual.y)+map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
           float tentativeGScore = gScore.getOrDefault(atual, Float.MAX_VALUE) + dist(atual.x, atual.y, vizinho.x, vizinho.y)*weight;
 
           if (!abertos.contains(vizinho) || tentativeGScore < gScore.getOrDefault(vizinho, Float.MAX_VALUE)) {
-            // Atualiza o caminho para o vizinho
+            // Atualiza o path para o vizinho
             cameFrom.put(vizinho, atual);
             gScore.put(vizinho, tentativeGScore);
             hScore.put(vizinho, dist(vizinho.x, vizinho.y, destino.x, destino.y));
@@ -99,8 +118,10 @@ class Player {
       }
     }
 
-    // Retorna uma lista vazia se não houver caminho
-    return new ArrayList<>();
+    setGrid();
+    pathIndex = path.size();
+    // Retorna uma lista vazia se não houver path
+    return new Stack<>();
 
     // Função de distância Euclidiana (ou outra métrica apropriada)
   }
@@ -110,21 +131,34 @@ class Player {
 
   PVector translateGridPosition(PVector d) {
     // Coordenadas globais no grid do mapa
-    int globalX = (int)pos.x - searchingArea / 2 + (int) d.x;
-    int globalY = (int)pos.y - searchingArea / 2 + (int) d.y;
+    int globalX = (int)origem.x - searchingArea / 2 + (int) d.x;
+    int globalY = (int)origem.y - searchingArea / 2 + (int) d.y;
     return new PVector(globalX, globalY);
   }
 
   PVector translateToGridPosition(PVector d) {
     // Calcula a posição local no grid do Player
-    int localX = (int)d.x - (int) pos.x + searchingArea / 2;
-    int localY = (int)d.y - (int) pos.y + searchingArea / 2;
+    int localX = (int)d.x - (int) origem.x + searchingArea / 2;
+    int localY = (int)d.y - (int) origem.y + searchingArea / 2;
 
     // Certifica-se de que as coordenadas estão dentro da área de busca
     localX = constrain(localX, 0, searchingArea - 1);
     localY = constrain(localY, 0, searchingArea - 1);
 
     return new PVector(localX, localY);
+  }
+
+  void update() {
+    if (pathIndex<path.size()) {
+      PVector aux = translateGridPosition(path.get(pathIndex));
+      pos = aux;
+      updateScreen();
+      ++pathIndex;
+    }else{
+      setGrid();
+      pathIndex = 0;
+      path = new Stack<PVector>();
+    }
   }
 
   void show() {
@@ -135,25 +169,26 @@ class Player {
     fill(#FF0000);
     rect(screenX, screenY, tileSize, tileSize);
 
+    // Desenhar o path em vermelho
+    stroke(#FF0000);
+    strokeWeight(2);
+
     for (int x =  0; x < searchingArea; ++x) {
       for (int y = 0; y < searchingArea; ++y) {
-        screenX = (pos.x+x-searchingArea/2) * tileSize + offsetX;
-        screenY = (pos.y+y-searchingArea/2) * tileSize + offsetY;
+        screenX = (origem.x+x-searchingArea/2) * tileSize + offsetX;
+        screenY = (origem.y+y-searchingArea/2) * tileSize + offsetY;
         stroke(#FF0000);
         strokeWeight(2);
         //fill(colors.get(grid[x][y]));
         //rect(screenX, screenY, tileSize, tileSize);
         fill(0);
-        //text(grid[x][y], screenX+tileSize/2.0, screenY+tileSize/2.0);
+        //text(player.grid[x][y], screenX+tileSize/2.0, screenY+tileSize/2.0);
       }
     }
-    // Desenhar o caminho em vermelho
-    stroke(#FF0000);
-    strokeWeight(2);
-    for (int i = 0; i < caminho.size() - 1; i++) {
-      //println(caminho.get(i));
-      PVector pontoAtual = translateGridPosition(caminho.get(i));
-      PVector proximoPonto = translateGridPosition(caminho.get(i+1));
+    for (int i = 0; i < path.size() - 1; i++) {
+      //println(path.get(i));
+      PVector pontoAtual = translateGridPosition(path.get(i));
+      PVector proximoPonto = translateGridPosition(path.get(i+1));
 
       float screenXAtual = pontoAtual.x * tileSize + offsetX;
       float screenYAtual = pontoAtual.y * tileSize + offsetY;
