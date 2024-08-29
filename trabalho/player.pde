@@ -1,6 +1,6 @@
 import java.util.*; // Importa as classes necessárias
 class Player {
-  PVector pos, origem;
+  PVector pos, origem, destino;
   Stack<PVector> caminho;
 
   int caminhoIndex;
@@ -9,8 +9,11 @@ class Player {
   boolean hasBoat, flipped;
   PImage sprite;
 
+  float animation = 0;
+
   Player(float x, float y) {
     pos = new PVector(x, y);
+    destino = new PVector(x, y);
     origem = new PVector(x, y);
     hasBoat = false;
     caminho = new Stack<PVector>();
@@ -27,92 +30,6 @@ class Player {
         grid[x][y] = map.getTileValue(-areaDeBusca/2+x+(int)origem.x, -areaDeBusca/2+y+(int)origem.y);
       }
     }
-  }
-
-  Stack<PVector> dijkstra(PVector destino) {
-    caminhoIndex = 0;
-    caminho = new Stack<PVector>();
-
-    if (hasBoat && (obst.contains(WATER) || obst.contains(SHALLOW_WATER))) {
-      obst.remove(obst.indexOf(WATER));
-      obst.remove(obst.indexOf(SHALLOW_WATER));
-    }
-
-
-    HashMap<PVector, Float> distancias = new HashMap<>();
-    HashMap<PVector, PVector> pais = new HashMap<>();
-
-    // Inicializa as listas de abertos e fechados
-    PriorityQueue<PVector> abertos = new PriorityQueue<>(new Comparator<PVector>() {
-      public int compare(PVector p1, PVector p2) {
-        return Float.compare(distancias.getOrDefault(p1, Float.MAX_VALUE), distancias.getOrDefault(p2, Float.MAX_VALUE));
-      }
-    }
-    );
-    HashSet<PVector> fechados = new HashSet<>();
-
-    // Adiciona a posição inicial (centro da grid) aos abertos
-    PVector inicio = new PVector(areaDeBusca / 2, areaDeBusca / 2);
-    abertos.add(inicio);
-    distancias.put(inicio, 0.0f);
-
-    while (!abertos.isEmpty()) {
-      // Encontra o nodo com a menor distância (PriorityQueue faz isso automaticamente)
-      PVector atual = abertos.poll();
-
-      // Se o nodo atual é o destino, reconstruir o caminho
-      if (atual.equals(destino)) {
-        Stack<PVector> caminhoAux = new Stack<PVector>();
-        while (pais.containsKey(atual)) {
-          caminhoAux.add(atual);
-          atual = pais.get(atual);
-        }
-        caminhoAux.add(inicio); // Adiciona o início ao caminho
-        Collections.reverse(caminhoAux); // Inverte o caminho para começar do início
-        return caminhoAux;
-      }
-
-      // Move o nodo atual dos abertos para os fechados
-      fechados.add(atual);
-
-      // Verifica os vizinhos ortogonais (não diagonais)
-      int[] dx = { -1, 1, 0, 0 };
-      int[] dy = { 0, 0, -1, 1 };
-
-      for (int k = 0; k < 4; k++) {
-        PVector vizinho = new PVector(atual.x + dx[k], atual.y + dy[k]);
-        PVector gridVizinho = translateGridPosition(vizinho);
-
-        if (vizinho.x < 0 || vizinho.x >= areaDeBusca || vizinho.y < 0 || vizinho.y >= areaDeBusca) continue;
-        if (fechados.contains(vizinho)) continue;
-
-        // Verifica se o vizinho é um obstáculo
-        if (isObstacle(map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y))) continue;
-
-        // Calcula o peso do vizinho
-        float value = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
-        if (value == WATER || value == SHALLOW_WATER) value = 0;
-
-        // Calcula a distância até o vizinho
-        float tentativeDistancia = distancias.getOrDefault(atual, Float.MAX_VALUE) + value;
-
-        if (!abertos.contains(vizinho) || tentativeDistancia < distancias.getOrDefault(vizinho, Float.MAX_VALUE)) {
-          // Atualiza o caminho para o vizinho
-          pais.put(vizinho, atual);
-          distancias.put(vizinho, tentativeDistancia);
-
-          // Adiciona o vizinho à lista de abertos
-          if (!abertos.contains(vizinho)) {
-            abertos.add(vizinho);
-          }
-        }
-      }
-    }
-
-    setGrid();
-    caminhoIndex = caminho.size();
-    // Retorna uma lista vazia se não houver caminho
-    return new Stack<>();
   }
 
   Stack<PVector> aEstrela(PVector destino) {
@@ -239,11 +156,12 @@ class Player {
   void update() {
     if (caminhoIndex<caminho.size()) {
       PVector aux = translateGridPosition(caminho.get(caminhoIndex));
+      caminho.set(constrain(caminhoIndex-1, 0, caminho.size()), new PVector(-1, -1));
       float value = map.getTileValue((int)aux.x, (int)aux.y);
       if (value==WATER || value==SHALLOW_WATER) value = .5;
 
       if (pos.x-aux.x < 0) flipped = true;
-      else if(pos.x-aux.x > 0)flipped = false;
+      else if (pos.x-aux.x > 0)flipped = false;
 
       pos = aux;
       updateScreen();
@@ -259,30 +177,53 @@ class Player {
   void show() {
     float screenX = pos.x * tileSize + offset.x;
     float screenY = pos.y * tileSize + offset.y;
-
-    // Desenhar o caminho em vermelho
-    stroke(#FF0000);
-    strokeWeight(2);
-
+    
+    int chunkX = floor((int)pos.x * tileSize / (float) chunkSize);
+    int chunkY = floor((int)pos.y * tileSize / (float) chunkSize);
+    String key = chunkX+","+chunkY;
+    chunks.get(key).display();
+    
     for (int i = 0; i < caminho.size() - 1; i++) {
-      //println(caminho.get(i));
-      PVector pontoAtual = translateGridPosition(caminho.get(i));
-      PVector proximoPonto = translateGridPosition(caminho.get(i+1));
 
-      float screenXAtual = pontoAtual.x * tileSize + offset.x;
-      float screenYAtual = pontoAtual.y * tileSize + offset.y;
-      float screenXProx = proximoPonto.x * tileSize + offset.x;
-      float screenYProx = proximoPonto.y * tileSize + offset.y;
+      if (caminho.get(i).x >= 0 && caminho.get(i).y >= 0) {
+        //println(caminho.get(i));
+        PVector pontoAtual = translateGridPosition(caminho.get(i));
+        PVector proximoPonto = translateGridPosition(caminho.get(i+1));
 
-      line(screenXAtual + tileSize / 2, screenYAtual + tileSize / 2, screenXProx + tileSize / 2, screenYProx + tileSize / 2);
+        float screenXAtual = pontoAtual.x * tileSize + offset.x;
+        float screenYAtual = pontoAtual.y * tileSize + offset.y;
+        float screenXProx = proximoPonto.x * tileSize + offset.x;
+        float screenYProx = proximoPonto.y * tileSize + offset.y;
+        stroke(100);
+        strokeWeight(10);
+        //line(screenXAtual + tileSize / 2, screenYAtual + tileSize / 2, screenXProx + tileSize / 2, screenYProx + tileSize / 2);
+
+        PVector lineOffset = new PVector(tileSize/2.0, tileSize/2.0);
+        stroke(255);
+        strokeWeight(5);
+        line(screenXAtual + lineOffset.x, screenYAtual + lineOffset.y, screenXProx + lineOffset.x, screenYProx + lineOffset.y);
+      }
     }
+    
+    
     pushMatrix();
     translate(screenX+tileSize/2.0, screenY+tileSize/3.5);
     if (flipped) scale(-1, 1);
     else scale(1, 1);
     imageMode(CENTER);
-    image(sprite, 0, 0, tileSize*2, tileSize*2);
+    image(sprite, 0, cos(animation), tileSize*2, tileSize*2);
     //rect(screenX, screenY, tileSize, tileSize);
     popMatrix();
+
+    if (PVector.sub(destino, pos).mag()>0) {
+      stroke(255);
+      strokeWeight(5);
+      noFill();
+      screenX = destino.x * tileSize + offset.x;
+      screenY = destino.y * tileSize + offset.y;
+      rect(screenX, screenY, tileSize, tileSize);
+    }
+
+    animation+=.1;
   }
 }
