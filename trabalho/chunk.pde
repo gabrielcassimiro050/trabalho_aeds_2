@@ -65,11 +65,11 @@ class Chunk {
 
 
 
-  void display(float offsetX, float offsetY) {
+  void display() {
     for (int x = 0; x < chunkSize / tileSize; x++) {
       for (int y = 0; y < chunkSize / tileSize; y++) {
-        float screenX = chunkX * chunkSize + x * tileSize + offsetX;
-        float screenY = chunkY * chunkSize + y * tileSize + offsetY;
+        float screenX = chunkX * chunkSize + x * tileSize + offset.x;
+        float screenY = chunkY * chunkSize + y * tileSize + offset.y;
 
         if (screenX + tileSize < 0 || screenX > width || screenY + tileSize < 0 || screenY > height) {
           continue;

@@ -3,24 +3,24 @@ class Map {
 
 
   void drag(float _offsetX, float _offsetY) {
-    offsetX += _offsetX;
-    offsetY += _offsetY;
+    offset.x += _offsetX;
+    offset.y += _offsetY;
   }
 
   int gridPosX(float xScreen) {
-    return floor((-offsetX + xScreen) / tileSize);
+    return floor((-offset.x + xScreen) / tileSize);
   }
 
   int gridPosY(float yScreen) {
-    return floor((-offsetY + yScreen) / tileSize);
+    return floor((-offset.y + yScreen) / tileSize);
   }
 
   int screenPosX(int gridX) {
-    return (gridX * tileSize + (int)offsetX) + tileSize/2;
+    return (gridX * tileSize + (int)offset.x) + tileSize/2;
   }
 
   int screenPosY(int gridY) {
-    return (gridY * tileSize + (int)offsetY) + tileSize/2;
+    return (gridY * tileSize + (int)offset.y) + tileSize/2;
   }
 
   int getTileValue(int gridX, int gridY) {
@@ -40,8 +40,8 @@ class Map {
   }
 
   void display() {
-    int startX = floor(-offsetX / chunkSize) - 1;
-    int startY = floor(-offsetY / chunkSize) - 1;
+    int startX = floor(-offset.x / chunkSize) - 1;
+    int startY = floor(-offset.y / chunkSize) - 1;
     int endX = startX + ceil(width / chunkSize) + 2;
     int endY = startY + ceil(height / chunkSize) + 2;
   
@@ -53,7 +53,7 @@ class Map {
           chunks.get(key).generateChunk();
         }
         Chunk chunk = (Chunk)chunks.get(key);
-        chunk.display(offsetX, offsetY);
+        chunk.display();
       }
     }
   

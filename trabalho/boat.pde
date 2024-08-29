@@ -6,8 +6,8 @@ class Boat{
   }
   
   void show() {
-    float screenX = pos.x * tileSize + offsetX;
-    float screenY = pos.y * tileSize + offsetY;
+    float screenX = pos.x * tileSize + offset.x;
+    float screenY = pos.y * tileSize + offset.y;
     noStroke();
     fill(#984712);
     rect(screenX, screenY, tileSize, tileSize);

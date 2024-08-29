@@ -3,9 +3,10 @@ import java.util.Collections;
 
 int time = 0;
 
-int tileSize = 15;
-int chunkSize = 90;
-int offsetX, offsetY;
+int tileSize = 25;
+int chunkSize = 100;
+PVector offset;
+PVector offsetVel;
 float diffX, diffY;
 float zoom;
 
@@ -17,7 +18,7 @@ PVector previousMouse;
 
 final int WATER = 0, GRASS = 1, SAND = 2, CORAL = 3, STONE = 4, CACTUS = 5, SHALLOW_WATER = 6, TREE = 7;
 ArrayList<Integer> colors;
-ArrayList<Integer> obstacles;
+ArrayList<Integer> obst;
 
 HashMap<String, Config> configs;
 Config currentConfig;
@@ -26,13 +27,11 @@ Map map;
 Player player;
 Boat boat;
 
-int searchingArea = 100;
+int areaDeBusca = 100;
 int toleranceRange = 30;
 
-
-
 boolean isObstacle(int x) {
-  for (int o : obstacles) {
+  for (int o : obst) {
     if (x == o) return true;
   }
   return false;
@@ -44,10 +43,6 @@ void updateScreen() {
   map.display();
   player.show();
   boat.show();
-  
-  
-   
-    
 }
 
 void setup() {
@@ -76,14 +71,14 @@ void setup() {
   colors.add(#98F7FF); // shallow_water
   colors.add(#048E0E); // tree
 
-  // Obstacles
-  obstacles = new ArrayList<Integer>();
-  obstacles.add(CORAL);
-  obstacles.add(STONE);
-  obstacles.add(CACTUS);
-  obstacles.add(TREE);
-  obstacles.add(WATER);
-  obstacles.add(SHALLOW_WATER);
+  // obst
+  obst = new ArrayList<Integer>();
+  obst.add(CORAL);
+  obst.add(STONE);
+  obst.add(CACTUS);
+  obst.add(TREE);
+  obst.add(WATER);
+  obst.add(SHALLOW_WATER);
 
   // Map
   chunks = new HashMap<String, Chunk>();
@@ -96,9 +91,10 @@ void setup() {
   } while (isObstacle(map.getTileValue(pX, pY)));
   player = new Player(pX, pY);
   boat = new Boat(pX+(int)random(10), pY+(int)random(10));
-
-  offsetX = width / 2 - (int) player.pos.x * tileSize;
-  offsetY = height / 2 - (int) player.pos.y * tileSize;
+  
+  offsetVel = new PVector(0, 0);
+  offset = new PVector(width / 2 - (int) player.pos.x * tileSize,height / 2 - (int) player.pos.y * tileSize);
+  
 
   updateScreen();
   previousMouse = new PVector(mouseX, mouseY);
@@ -107,8 +103,8 @@ void setup() {
 void keyReleased() {
   switch (key) {
   case 'p':
-    offsetX = width / 2 - (int) player.pos.x * tileSize;
-    offsetY = height / 2 - (int) player.pos.y * tileSize;
+    offset.x = width / 2 - (int) player.pos.x * tileSize;
+    offset.y = height / 2 - (int) player.pos.y * tileSize;
     updateScreen();
     break;
   }
@@ -128,11 +124,13 @@ void mouseReleased() {
     //int deltaX = (int) abs(player.pos.x - map.gridPosX(mouseX));
     //int deltaY = (int) abs(player.pos.y - map.gridPosY(mouseY));
 
-    //searchingArea = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + toleranceRange;
-
-    PVector m = player.translateToGridPosition(new PVector(map.gridPosX(mouseX), map.gridPosY(mouseY)));
+    //areaDeBusca = ((deltaX > deltaY) ? deltaX : deltaY) * 2 + toleranceRange;
+    
     player.setGrid();
-    player.path = player.aEstrela(m);
+    PVector m = player.translateToGridPosition(new PVector(map.gridPosX(mouseX), map.gridPosY(mouseY)));
+    
+    player.caminho = player.aEstrela(m);
+    //player.caminho = player.dijkstra(m);
     //player.update();
 
     updateScreen();
@@ -144,7 +142,14 @@ void draw() {
     map.drag((width / 2.0 - mouseX) / 10.0, (height / 2.0 - mouseY) / 10.0);
     updateScreen();
   }
-  if(time%10==0) player.update();
+  if(time%player.velocidade==0) player.update();
+  
+  PVector acc = new PVector(width / 2 - (int) player.pos.x * tileSize - offset.x, height / 2 - (int) player.pos.y * tileSize - offset.y);
+  acc.normalize();
+  //acc.mult(.8);
+  //.add(acc);
+  offset.add(acc);
+  
   fill(255);
   text(frameRate, width - 20, 20);
   ++time;
