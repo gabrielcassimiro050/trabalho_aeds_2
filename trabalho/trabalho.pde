@@ -23,6 +23,8 @@ Map map;
 Player player;
 Boat boat;
 
+PImage grass;
+
 int areaDeBusca = 100;
 int toleranceRange = 30;
 
@@ -53,9 +55,11 @@ void setup() {
   configs.put("Ocean", new Config(.5, .6, .65, .99));
   configs.put("Desert", new Config(.2, .3, .9, .99));
   configs.put("Normal", new Config(.3, .4, .5, .8));
-
+  
   currentConfig = configs.get("Normal");
-
+  
+  grass = loadImage("grass.png");
+  
   // Colors
   colors = new ArrayList<Integer>();
   colors.add(#40BCFC); // water
@@ -127,6 +131,7 @@ void draw() {
   }
   
   player.show();
+  boat.show();
   if (time%player.velocidade==0) player.update();
 
   fill(255);

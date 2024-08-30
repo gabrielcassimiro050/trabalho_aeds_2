@@ -15,7 +15,7 @@ class Player {
     pos = new PVector(x, y);
     destino = new PVector(x, y);
     origem = new PVector(x, y);
-    hasBoat = false;
+    hasBoat = true;
     caminho = new Stack<PVector>();
     setGrid();
     velocidade = map.getTileValue((int)x, (int)y)*velocidadeFator;
@@ -183,6 +183,12 @@ class Player {
     String key = chunkX+","+chunkY;
     chunks.get(key).display();
     
+    
+    chunkX = floor((int)destino.x * tileSize / (float) chunkSize);
+    chunkY = floor((int)destino.y * tileSize / (float) chunkSize);
+    key = chunkX+","+chunkY;
+    chunks.get(key).display();
+    
     for (int i = 0; i < caminho.size() - 1; i++) {
 
       if (caminho.get(i).x >= 0 && caminho.get(i).y >= 0) {
@@ -217,7 +223,7 @@ class Player {
 
     if (PVector.sub(destino, pos).mag()>0) {
       stroke(255);
-      strokeWeight(5);
+      strokeWeight(5+cos(animation));
       noFill();
       screenX = destino.x * tileSize + offset.x;
       screenY = destino.y * tileSize + offset.y;
