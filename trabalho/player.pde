@@ -8,14 +8,14 @@ class Player {
   int[][] grid;
   boolean hasBoat, flipped;
   PImage sprite;
-
+  int nWoods = 0;
   float animation = 0;
 
   Player(float x, float y) {
     pos = new PVector(x, y);
     destino = new PVector(x, y);
     origem = new PVector(x, y);
-    hasBoat = true;
+    hasBoat = false;
     caminho = new Stack<PVector>();
     setGrid();
     velocidade = map.getTileValue((int)x, (int)y)*velocidadeFator;
@@ -104,7 +104,7 @@ class Player {
           float value = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
           if (value==WATER || value==SHALLOW_WATER) value = 0;
 
-          float peso = (value+gScore.get(atual))/2.0;
+          float peso = value;
           float tentativeGScore = dist(atual.x, atual.y, vizinho.x, vizinho.y)*peso;
 
           if (!abertos.contains(vizinho) || tentativeGScore < gScore.getOrDefault(vizinho, Float.MAX_VALUE)) {
@@ -127,11 +127,6 @@ class Player {
     caminhoIndex = caminho.size();
     // Retorna uma lista vazia se não houver caminho
     return new Stack<>();
-
-    // Função de distância Euclidiana (ou outra métrica apropriada)
-  }
-  float dist(float x1, float y1, float x2, float y2) {
-    return (float) Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   }
 
   PVector translateGridPosition(PVector gridPosition) {
@@ -154,6 +149,22 @@ class Player {
   }
 
   void update() {
+
+    int t = 0;
+    for (Wood w : woods) {
+      if (w!=null) {
+        float d = dist(pos, w.pos);
+        if (d<=0) {
+          woods.set(t, null);
+          updateScreen();
+          ++nWoods;
+        }
+        
+      }
+      ++t;
+    }
+
+    println(nWoods);
     if (caminhoIndex<caminho.size()) {
       PVector aux = translateGridPosition(caminho.get(caminhoIndex));
       caminho.set(constrain(caminhoIndex-1, 0, caminho.size()), new PVector(-1, -1));
@@ -177,18 +188,7 @@ class Player {
   void show() {
     float screenX = pos.x * tileSize + offset.x;
     float screenY = pos.y * tileSize + offset.y;
-    
-    int chunkX = floor((int)pos.x * tileSize / (float) chunkSize);
-    int chunkY = floor((int)pos.y * tileSize / (float) chunkSize);
-    String key = chunkX+","+chunkY;
-    chunks.get(key).display();
-    
-    
-    chunkX = floor((int)destino.x * tileSize / (float) chunkSize);
-    chunkY = floor((int)destino.y * tileSize / (float) chunkSize);
-    key = chunkX+","+chunkY;
-    chunks.get(key).display();
-    
+
     for (int i = 0; i < caminho.size() - 1; i++) {
 
       if (caminho.get(i).x >= 0 && caminho.get(i).y >= 0) {
@@ -210,8 +210,8 @@ class Player {
         line(screenXAtual + lineOffset.x, screenYAtual + lineOffset.y, screenXProx + lineOffset.x, screenYProx + lineOffset.y);
       }
     }
-    
-    
+
+
     pushMatrix();
     translate(screenX+tileSize/2.0, screenY+tileSize/3.5);
     if (flipped) scale(-1, 1);
@@ -223,7 +223,7 @@ class Player {
 
     if (PVector.sub(destino, pos).mag()>0) {
       stroke(255);
-      strokeWeight(5+cos(animation));
+      strokeWeight(5);
       noFill();
       screenX = destino.x * tileSize + offset.x;
       screenY = destino.y * tileSize + offset.y;

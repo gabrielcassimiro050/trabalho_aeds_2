@@ -23,10 +23,16 @@ Map map;
 Player player;
 Boat boat;
 
-PImage grass;
+PImage woodSprite;
+int nWoods = 10, woodRange = 150;
+ArrayList<Wood> woods;
 
 int areaDeBusca = 100;
 int toleranceRange = 30;
+
+float dist(PVector p1, PVector p2) {
+  return dist(p1.x, p1.y, p2.x, p2.y);
+}
 
 boolean isObstacle(int x) {
   for (int o : obst) {
@@ -39,12 +45,35 @@ boolean isObstacle(int x) {
 
 void updateScreen() {
   map.display();
-  player.show();
+
   boat.show();
+  showWoods();
+  player.show();
+}
+
+void setWoods(float x, float y, float range) {
+  for (int i = 0; i < nWoods; ++i) {
+    PVector aux = new PVector(x+(int)random(-range/2.0, range/2.0), y+(int)random(-range/2.0, range/2.0));
+    int value = map.getTileValue((int)aux.x, (int)aux.y);
+
+
+    while (isObstacle(value)) {
+      aux = new PVector(x+(int)random(-range/2.0, range/2.0), y+(int)random(-range/2.0, range/2.0));
+      int auxX = (int)aux.x;
+      int auxY = (int)aux.y;
+      value = map.getTileValue(auxX, auxY);
+    }
+
+    woods.add(new Wood(aux.x, aux.y));
+  }
+}
+
+void showWoods() {
+  for (Wood w : woods) if(w!=null) w.show();
 }
 
 void setup() {
-  size(1750, 750);
+  size(1250, 500);
 
   // Seeds
   seed = random(1000);
@@ -55,11 +84,9 @@ void setup() {
   configs.put("Ocean", new Config(.5, .6, .65, .99));
   configs.put("Desert", new Config(.2, .3, .9, .99));
   configs.put("Normal", new Config(.3, .4, .5, .8));
-  
+
   currentConfig = configs.get("Normal");
-  
-  grass = loadImage("grass.png");
-  
+
   // Colors
   colors = new ArrayList<Integer>();
   colors.add(#40BCFC); // water
@@ -89,9 +116,17 @@ void setup() {
     pX = (int) random(100) + 10000;
     pY = (int) random(100) + 10000;
   } while (isObstacle(map.getTileValue(pX, pY)));
+  
+  woods = new ArrayList<Wood>();
+  woodSprite = loadImage("wood.png");
+  setWoods(pX, pY, woodRange);
+  
   player = new Player(pX, pY);
   boat = new Boat(pX+(int)random(10), pY+(int)random(10));
 
+
+
+  //for(int i = 0; i < nWoods; ++i) woods.add(new Wood(player.pos.x+(int)random(-50, 50), player.pos.y+(int)random(-50, 50)));
   offset = new PVector(width / 2 - (int) player.pos.x * tileSize, height / 2 - (int) player.pos.y * tileSize);
 
 
@@ -129,9 +164,8 @@ void draw() {
     map.drag((width / 2.0 - mouseX) / 10.0, (height / 2.0 - mouseY) / 10.0);
     updateScreen();
   }
-  
-  player.show();
-  boat.show();
+
+
   if (time%player.velocidade==0) player.update();
 
   fill(255);
