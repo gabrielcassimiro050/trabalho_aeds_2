@@ -7,8 +7,8 @@ class Player {
   float velocidade, velocidadeFator = 5;
   int[][] grid;
   boolean hasBoat, flipped;
-  PImage sprite;
-  int nWoods = 0;
+  PImage sprite, boatSprite;
+  int woodsGotten = 0;
   float animation = 0;
 
   Player(float x, float y) {
@@ -20,6 +20,7 @@ class Player {
     setGrid();
     velocidade = map.getTileValue((int)x, (int)y)*velocidadeFator;
     sprite = loadImage("player.png");
+    boatSprite = loadImage("player_boat.png");
   }
 
   void setGrid() {
@@ -104,7 +105,7 @@ class Player {
           float value = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
           if (value==WATER || value==SHALLOW_WATER) value = 0;
 
-          float peso = value;
+          float peso = value*2;
           float tentativeGScore = dist(atual.x, atual.y, vizinho.x, vizinho.y)*peso;
 
           if (!abertos.contains(vizinho) || tentativeGScore < gScore.getOrDefault(vizinho, Float.MAX_VALUE)) {
@@ -157,14 +158,16 @@ class Player {
         if (d<=0) {
           woods.set(t, null);
           updateScreen();
-          ++nWoods;
+          ++woodsGotten;
         }
-        
       }
       ++t;
     }
 
-    println(nWoods);
+    //if(woodsGotten==nWood-1) hasBoat = true;
+    //if(hasBoat) println("ok");
+    //println(woodsGotten);
+
     if (caminhoIndex<caminho.size()) {
       PVector aux = translateGridPosition(caminho.get(caminhoIndex));
       caminho.set(constrain(caminhoIndex-1, 0, caminho.size()), new PVector(-1, -1));
@@ -213,12 +216,17 @@ class Player {
 
 
     pushMatrix();
-    translate(screenX+tileSize/2.0, screenY+tileSize/3.5);
+    translate(screenX+tileSize/2.0, screenY+tileSize/10.0);
     if (flipped) scale(-1, 1);
     else scale(1, 1);
     imageMode(CENTER);
-    image(sprite, 0, cos(animation), tileSize*2, tileSize*2);
-    //rect(screenX, screenY, tileSize, tileSize);
+
+    if (map.getTileValue((int)pos.x, (int)pos.y) == SHALLOW_WATER || map.getTileValue((int)pos.x, (int)pos.y) == WATER) {
+      image(boatSprite, 0, cos(animation)*2, tileSize*2, tileSize*2);
+    } else {
+      image(sprite, 0, cos(animation), tileSize*2, tileSize*2);
+    }
+
     popMatrix();
 
     if (PVector.sub(destino, pos).mag()>0) {

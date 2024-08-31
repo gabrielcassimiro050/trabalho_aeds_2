@@ -11,7 +11,6 @@ HashMap<String, Chunk> chunks;
 float seed, treeSeed;
 float noiseScale = .003;
 
-
 final int WATER = 0, GRASS = 1, SAND = 2, CORAL = 3, STONE = 4, CACTUS = 5, SHALLOW_WATER = 6, TREE = 7;
 ArrayList<Integer> colors;
 ArrayList<Integer> obst;
@@ -21,14 +20,17 @@ Config currentConfig;
 
 Map map;
 Player player;
-Boat boat;
+
+boolean isCameraFollowing;
 
 PImage woodSprite;
-int nWoods = 10, woodRange = 150;
+int nWood = 1, woodRange = 150;
 ArrayList<Wood> woods;
 
 int areaDeBusca = 100;
 int toleranceRange = 30;
+
+PFont pixelFont;
 
 float dist(PVector p1, PVector p2) {
   return dist(p1.x, p1.y, p2.x, p2.y);
@@ -45,14 +47,12 @@ boolean isObstacle(int x) {
 
 void updateScreen() {
   map.display();
-
-  boat.show();
   showWoods();
   player.show();
 }
 
 void setWoods(float x, float y, float range) {
-  for (int i = 0; i < nWoods; ++i) {
+  for (int i = 0; i < nWood; ++i) {
     PVector aux = new PVector(x+(int)random(-range/2.0, range/2.0), y+(int)random(-range/2.0, range/2.0));
     int value = map.getTileValue((int)aux.x, (int)aux.y);
 
@@ -69,7 +69,7 @@ void setWoods(float x, float y, float range) {
 }
 
 void showWoods() {
-  for (Wood w : woods) if(w!=null) w.show();
+  for (Wood w : woods) if (w!=null) w.show();
 }
 
 void setup() {
@@ -78,7 +78,8 @@ void setup() {
   // Seeds
   seed = random(1000);
   treeSeed = random(1000);
-
+  pixelFont = createFont("Minecraft.ttf", 20);
+  textFont(pixelFont);
   // Map Configs
   configs = new HashMap<String, Config>();
   configs.put("Ocean", new Config(.5, .6, .65, .99));
@@ -116,13 +117,12 @@ void setup() {
     pX = (int) random(100) + 10000;
     pY = (int) random(100) + 10000;
   } while (isObstacle(map.getTileValue(pX, pY)));
-  
+
   woods = new ArrayList<Wood>();
   woodSprite = loadImage("wood.png");
   setWoods(pX, pY, woodRange);
-  
+
   player = new Player(pX, pY);
-  boat = new Boat(pX+(int)random(10), pY+(int)random(10));
 
 
 
@@ -136,8 +136,12 @@ void setup() {
 void keyReleased() {
   switch (key) {
   case 'p':
-    offset.x = width / 2 - (int) player.pos.x * tileSize;
-    offset.y = height / 2 - (int) player.pos.y * tileSize;
+    if (isCameraFollowing) isCameraFollowing = false;
+    else isCameraFollowing = true;
+    break;
+  case 'b':
+    if (player.woodsGotten == nWood) player.hasBoat = true;
+    player.woodsGotten = 0;
     updateScreen();
     break;
   }
@@ -160,15 +164,31 @@ void mouseReleased() {
 }
 
 void draw() {
+  updateScreen();
+
   if (mousePressed && mouseButton == RIGHT) {
     map.drag((width / 2.0 - mouseX) / 10.0, (height / 2.0 - mouseY) / 10.0);
-    updateScreen();
   }
-
 
   if (time%player.velocidade==0) player.update();
 
-  fill(255);
-  text(frameRate, width - 20, 20);
+  if (isCameraFollowing) {
+    offset.x = width / 2 - (int) player.pos.x * tileSize;
+    offset.y = height / 2 - (int) player.pos.y * tileSize;
+    updateScreen();
+  }
+
+  if (player.woodsGotten == nWood) {
+    fill(#063439);
+    textSize(40);
+    noStroke();
+    rect(width/2.0-width/4.55, height/2.0+cos(player.animation)*width/1000+height/100, width/2.0, width/200, 100);
+    text("PRESS B TO BUILD THE BOAT", width/2.0-width/4.8, height/2.0+cos(player.animation)*width/1000);
+  }
+  
+  fill(#063439);
+  textSize(20);
+  text(player.woodsGotten+"/"+nWood, width-120, 37);
+  image(woodSprite, width-50, 30, 50, 50);
   ++time;
 }
