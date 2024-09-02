@@ -23,16 +23,23 @@ Player player;
 
 boolean cameraSeguindo;
 
-PImage woodSprite, paperSprite;
-int nWood = 5, woodRange = 150;
-int paperRange = 100;
+PImage woodSprite, paperSprite, treasureSprite;
+
+int nWood = 0, woodRange = 150;
 ArrayList<Wood> woods;
+
+int paperRange = 100;
 Paper paper;
+
+int treasureRange = 100;
+Treasure treasure;
 
 int areaDeBusca = 100;
 int toleranceRange = 30;
 
 PFont pixelFont;
+
+boolean endGame;
 
 float dist(PVector p1, PVector p2) {
   return dist(p1.x, p1.y, p2.x, p2.y);
@@ -75,7 +82,7 @@ void showWoods() {
 }
 
 void setup() {
-  size(1524, 768);
+  size(1200, 500);
 
   // Seeds
   seed = random(1000);
@@ -123,12 +130,26 @@ void setup() {
   woods = new ArrayList<Wood>();
   woodSprite = loadImage("wood.png");
   setWoods(pX, pY, woodRange);
-  
+
+  PVector paperPos = new PVector(pX+(int)random(-paperRange/2.0, paperRange/2.0), pY+(int)random(-paperRange/2.0, paperRange/2.0));
   paperSprite = loadImage("paper.png");
-  paper = new Paper(pX+random(-paperRange/2.0, paperRange/2.0), pY+random(-paperRange/2.0, paperRange/2.0));
+
+
+  while (isObstacle(map.getTileValue((int)paperPos.x, (int)paperPos.y))) {
+    paperPos = new PVector(pX+(int)random(-paperRange/2.0, paperRange/2.0), pY+(int)random(-paperRange/2.0, paperRange/2.0));
+  }
+
+  paper = new Paper(paperPos.x, paperPos.y);
+
   player = new Player(pX, pY);
 
+  treasureSprite = loadImage("treasure.png");
 
+  PVector treasurePos = new PVector(pX+(int)random(-treasureRange/2.0, treasureRange/2.0), pY+(int)random(-treasureRange/2.0, treasureRange/2.0));
+  while (map.getTileValue((int)treasurePos.x, (int)treasurePos.y)!=WATER) {
+    treasurePos = new PVector(pX+(int)random(-treasureRange/2.0, treasureRange/2.0), pY+(int)random(-treasureRange/2.0, treasureRange/2.0));
+  }
+  treasure = new Treasure(treasurePos.x, treasurePos.y);
 
   //for(int i = 0; i < nWoods; ++i) woods.add(new Wood(player.pos.x+(int)random(-50, 50), player.pos.y+(int)random(-50, 50)));
   offset = new PVector(width / 2 - (int) player.pos.x * tileSize, height / 2 - (int) player.pos.y * tileSize);
@@ -178,24 +199,21 @@ void draw() {
   }
 
   if (player.woodsGotten == nWood) {
-    fill(#063439);
-    textSize(40);
-    noStroke();
-    rect(width/2.0-width/4.55, height/2.0+cos(player.animation)*width/1000+height/100, width/2.0, width/200, 100);
-    text("PRESS B TO BUILD THE BOAT", width/2.0-width/4.8, height/2.0+cos(player.animation)*width/1000);
-  }
-  
-  if (player.woodsGotten == nWood){
     player.hasBoat = true;
     player.woodsGotten = 0;
   }
-  if(player.hasBoat){
+
+  if (player.hasBoat) {
     paper.show();
   }
-  
+
+  if (player.hasMap) {
+    treasure.show();
+  }
+
   fill(#063439);
   textSize(20);
-  text(player.woodsGotten+"/"+nWood, width-120, 37);
-  image(woodSprite, width-50, 30, 50, 50);
+  text(player.woodsGotten+"/"+nWood, width-width/15.0, 37);
+  image(woodSprite, width-width/10.0, 30, 50, 50);
   ++time;
 }

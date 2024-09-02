@@ -1,8 +1,8 @@
-class Paper {
+class Treasure {
   PVector pos;
   boolean visible;
 
-  Paper(float x, float y) {
+  Treasure(float x, float y) {
     pos = new PVector(x, y);
     visible = true;
   }
@@ -15,13 +15,13 @@ class Paper {
       fill(0);
       PVector icon = new PVector(constrain(screenX, tileSize, width-tileSize*2), constrain(screenY, tileSize, height-tileSize*2));
       imageMode(CENTER);
-      image(paperSprite, icon.x+tileSize/2.0, icon.y+tileSize/2.0, tileSize*1.5, tileSize*1.5);
+      image(treasureSprite, icon.x+tileSize/2.0, icon.y+tileSize/2.0, tileSize*1.5, tileSize*1.5);
 
       if (screenX < 0 || screenX > width || screenY < 0 || screenY > height) {
         noFill();
         stroke(255);
         strokeWeight(3);
-        ellipse(icon.x+tileSize/2.0, icon.y+tileSize/1.5, tileSize*2.0, tileSize*2.0);
+        ellipse(icon.x+tileSize/2.0, icon.y+tileSize/2.0, tileSize*2.0, tileSize*2.0);
       }
       // rect(icon.x, icon.y, tileSize, tileSize);
     }

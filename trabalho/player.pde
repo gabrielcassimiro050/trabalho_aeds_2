@@ -6,7 +6,7 @@ class Player {
   int caminhoIndex;
   float velocidade, velocidadeFator = 5;
   int[][] grid;
-  boolean hasBoat, flipped;
+  boolean hasBoat, hasMap, flipped;
   PImage sprite, boatSprite;
   int woodsGotten = 0;
   float animation = 0;
@@ -16,6 +16,7 @@ class Player {
     destino = new PVector(x, y);
     origem = new PVector(x, y);
     hasBoat = false;
+    hasMap = false;
     caminho = new Stack<PVector>();
     setGrid();
     velocidade = map.getTileValue((int)x, (int)y)*velocidadeFator;
@@ -23,6 +24,7 @@ class Player {
     boatSprite = loadImage("player_boat.png");
   }
 
+  //Cria a grid para o funcionamento do aEstrela
   void setGrid() {
     grid = new int[areaDeBusca][areaDeBusca];
     origem = new PVector(pos.x, pos.y);
@@ -34,15 +36,23 @@ class Player {
   }
 
   Stack<PVector> aEstrela(PVector destino) {
+    if (obst.contains(WATER) && obst.contains(SHALLOW_WATER)) {
+      obst.set(obst.indexOf(WATER), -1);
+      obst.set(obst.indexOf(SHALLOW_WATER), -1);
+    }
     caminhoIndex = 0;
     caminho = new Stack<PVector>();
 
-    // Inicializa as listas de abertos e fechados
+    //Valor do peso
     HashMap<PVector, Float> gScore = new HashMap<>();
+    //Valor da distância
     HashMap<PVector, Float> hScore = new HashMap<>();
+    //Soma do peso e a distância (valor final)
     HashMap<PVector, Float> fScore = new HashMap<>();
+    //Nó que leva ao outro
     HashMap<PVector, PVector> pais = new HashMap<>();
 
+    // Inicializa as listas de abertos e fechados
     PriorityQueue<PVector> abertos = new PriorityQueue<>(new Comparator<PVector>() {
       public int compare(PVector p1, PVector p2) {
         return Float.compare(fScore.getOrDefault(p1, Float.MAX_VALUE), fScore.getOrDefault(p2, Float.MAX_VALUE));
@@ -55,9 +65,6 @@ class Player {
     // Adiciona a posição inicial (centro da grid) aos abertos
     PVector inicio = new PVector(areaDeBusca / 2, areaDeBusca / 2);
     abertos.add(inicio);
-
-    // Mapas para armazenar os custos g, h e f
-
 
     // Inicializa os scores
     gScore.put(inicio, 0.0f);
@@ -96,12 +103,14 @@ class Player {
           if (fechados.contains(vizinho)) continue;
 
           float vizinhoValue = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
-    
+
           if (hasBoat && (vizinhoValue == WATER || vizinhoValue == SHALLOW_WATER)) {
-            vizinhoValue = 0.5f;
+            vizinhoValue = 0.5;
           }
-          
-          float tentativeGScore = dist(atual.x, atual.y, vizinho.x, vizinho.y)*vizinhoValue;
+
+
+
+          float tentativeGScore = dist(atual, vizinho)*vizinhoValue;
 
           if (!abertos.contains(vizinho) || tentativeGScore < gScore.getOrDefault(vizinho, Float.MAX_VALUE)) {
             // Atualiza o caminho para o vizinho
@@ -157,6 +166,16 @@ class Player {
         }
       }
       ++t;
+    }
+
+    if (dist(pos, paper.pos)<=0 && paper.visible) {
+      paper.visible = false;
+      hasMap = true;
+    }
+    
+    if (dist(pos, treasure.pos)<=0 && treasure.visible) {
+      treasure.visible = false;
+      endGame = true;;
     }
 
     //if(woodsGotten==nWood-1) hasBoat = true;
