@@ -21,11 +21,13 @@ Config currentConfig;
 Map map;
 Player player;
 
-boolean isCameraFollowing;
+boolean cameraSeguindo;
 
-PImage woodSprite;
-int nWood = 1, woodRange = 150;
+PImage woodSprite, paperSprite;
+int nWood = 5, woodRange = 150;
+int paperRange = 100;
 ArrayList<Wood> woods;
+Paper paper;
 
 int areaDeBusca = 100;
 int toleranceRange = 30;
@@ -73,7 +75,7 @@ void showWoods() {
 }
 
 void setup() {
-  size(1250, 500);
+  size(1524, 768);
 
   // Seeds
   seed = random(1000);
@@ -121,7 +123,9 @@ void setup() {
   woods = new ArrayList<Wood>();
   woodSprite = loadImage("wood.png");
   setWoods(pX, pY, woodRange);
-
+  
+  paperSprite = loadImage("paper.png");
+  paper = new Paper(pX+random(-paperRange/2.0, paperRange/2.0), pY+random(-paperRange/2.0, paperRange/2.0));
   player = new Player(pX, pY);
 
 
@@ -136,13 +140,8 @@ void setup() {
 void keyReleased() {
   switch (key) {
   case 'p':
-    if (isCameraFollowing) isCameraFollowing = false;
-    else isCameraFollowing = true;
-    break;
-  case 'b':
-    if (player.woodsGotten == nWood) player.hasBoat = true;
-    player.woodsGotten = 0;
-    updateScreen();
+    if (cameraSeguindo) cameraSeguindo = false;
+    else cameraSeguindo = true;
     break;
   }
 }
@@ -172,7 +171,7 @@ void draw() {
 
   if (time%player.velocidade==0) player.update();
 
-  if (isCameraFollowing) {
+  if (cameraSeguindo) {
     offset.x = width / 2 - (int) player.pos.x * tileSize;
     offset.y = height / 2 - (int) player.pos.y * tileSize;
     updateScreen();
@@ -184,6 +183,14 @@ void draw() {
     noStroke();
     rect(width/2.0-width/4.55, height/2.0+cos(player.animation)*width/1000+height/100, width/2.0, width/200, 100);
     text("PRESS B TO BUILD THE BOAT", width/2.0-width/4.8, height/2.0+cos(player.animation)*width/1000);
+  }
+  
+  if (player.woodsGotten == nWood){
+    player.hasBoat = true;
+    player.woodsGotten = 0;
+  }
+  if(player.hasBoat){
+    paper.show();
   }
   
   fill(#063439);

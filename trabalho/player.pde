@@ -37,11 +37,6 @@ class Player {
     caminhoIndex = 0;
     caminho = new Stack<PVector>();
 
-    if (hasBoat && (obst.contains(WATER) || obst.contains(SHALLOW_WATER))) {
-      obst.remove(obst.indexOf(WATER));
-      obst.remove(obst.indexOf(SHALLOW_WATER));
-    }
-
     // Inicializa as listas de abertos e fechados
     HashMap<PVector, Float> gScore = new HashMap<>();
     HashMap<PVector, Float> hScore = new HashMap<>();
@@ -100,13 +95,13 @@ class Player {
           if (vizinho.x < 0 || vizinho.x >= areaDeBusca || vizinho.y < 0 || vizinho.y >= areaDeBusca) continue;
           if (fechados.contains(vizinho)) continue;
 
-          //PVector gridAtual = translateGridPosition(atual);
-
-          float value = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
-          if (value==WATER || value==SHALLOW_WATER) value = 0;
-
-          float peso = value*2;
-          float tentativeGScore = dist(atual.x, atual.y, vizinho.x, vizinho.y)*peso;
+          float vizinhoValue = map.getTileValue((int)gridVizinho.x, (int)gridVizinho.y);
+    
+          if (hasBoat && (vizinhoValue == WATER || vizinhoValue == SHALLOW_WATER)) {
+            vizinhoValue = 0.5f;
+          }
+          
+          float tentativeGScore = dist(atual.x, atual.y, vizinho.x, vizinho.y)*vizinhoValue;
 
           if (!abertos.contains(vizinho) || tentativeGScore < gScore.getOrDefault(vizinho, Float.MAX_VALUE)) {
             // Atualiza o caminho para o vizinho
@@ -208,7 +203,7 @@ class Player {
         //line(screenXAtual + tileSize / 2, screenYAtual + tileSize / 2, screenXProx + tileSize / 2, screenYProx + tileSize / 2);
 
         PVector lineOffset = new PVector(tileSize/2.0, tileSize/2.0);
-        stroke(255);
+        stroke(#F05252);
         strokeWeight(5);
         line(screenXAtual + lineOffset.x, screenYAtual + lineOffset.y, screenXProx + lineOffset.x, screenYProx + lineOffset.y);
       }
@@ -230,7 +225,7 @@ class Player {
     popMatrix();
 
     if (PVector.sub(destino, pos).mag()>0) {
-      stroke(255);
+      stroke(#F05252);
       strokeWeight(5);
       noFill();
       screenX = destino.x * tileSize + offset.x;
