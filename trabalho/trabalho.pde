@@ -154,7 +154,7 @@ void setup() {
   //for(int i = 0; i < nWoods; ++i) woods.add(new Wood(player.pos.x+(int)random(-50, 50), player.pos.y+(int)random(-50, 50)));
   offset = new PVector(width / 2 - (int) player.pos.x * tileSize, height / 2 - (int) player.pos.y * tileSize);
 
-
+  endGame = true;
   updateScreen();
 }
 
@@ -184,36 +184,42 @@ void mouseReleased() {
 }
 
 void draw() {
-  updateScreen();
-
-  if (mousePressed && mouseButton == RIGHT) {
-    map.drag((width / 2.0 - mouseX) / 10.0, (height / 2.0 - mouseY) / 10.0);
-  }
-
-  if (time%player.velocidade==0) player.update();
-
-  if (cameraSeguindo) {
-    offset.x = width / 2 - (int) player.pos.x * tileSize;
-    offset.y = height / 2 - (int) player.pos.y * tileSize;
+  if (!endGame) {
     updateScreen();
-  }
 
-  if (player.woodsGotten == nWood) {
-    player.hasBoat = true;
-    player.woodsGotten = 0;
-  }
+    if (mousePressed && mouseButton == RIGHT) {
+      map.drag((width / 2.0 - mouseX) / 10.0, (height / 2.0 - mouseY) / 10.0);
+    }
 
-  if (player.hasBoat) {
-    paper.show();
-  }
+    if (time%player.velocidade==0) player.update();
 
-  if (player.hasMap) {
-    treasure.show();
-  }
+    if (cameraSeguindo) {
+      offset.x = width / 2 - (int) player.pos.x * tileSize;
+      offset.y = height / 2 - (int) player.pos.y * tileSize;
+    }
 
-  fill(#063439);
-  textSize(20);
-  text(player.woodsGotten+"/"+nWood, width-width/15.0, 37);
-  image(woodSprite, width-width/10.0, 30, 50, 50);
+    if (player.woodsGotten == nWood) {
+      player.hasBoat = true;
+      player.woodsGotten = 0;
+    }
+
+    if (player.hasBoat) {
+      paper.show();
+    }
+
+    if (player.hasMap) {
+      treasure.show();
+    }
+
+    fill(#063439);
+    textSize(20);
+    text(player.woodsGotten+"/"+nWood, width-width/15.0, 37);
+    image(woodSprite, width-width/10.0, 30, 50, 50);
+  }else{
+    background(#110B27);
+    fill(255);
+    image(treasureSprite, width/2.0, height/2.0-width/15.0, width/10.0, width/10.0);
+    text("VOCE ENCONTROU O TESOURO!", width/2.0-width/7.0, height/2.0);
+  }
   ++time;
 }
