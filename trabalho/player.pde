@@ -36,7 +36,7 @@ class Player {
   }
 
   Stack<PVector> aEstrela(PVector destino) {
-    if (obst.contains(WATER) && obst.contains(SHALLOW_WATER)) {
+    if (hasBoat && obst.contains(WATER) && obst.contains(SHALLOW_WATER)) {
       obst.set(obst.indexOf(WATER), -1);
       obst.set(obst.indexOf(SHALLOW_WATER), -1);
     }
