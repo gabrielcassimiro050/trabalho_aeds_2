@@ -25,7 +25,7 @@ boolean cameraSeguindo;
 
 PImage woodSprite, paperSprite, treasureSprite;
 
-int nWood = 0, woodRange = 150;
+int nWood = 5, woodRange = 150;
 ArrayList<Wood> woods;
 
 int paperRange = 100;
@@ -154,7 +154,7 @@ void setup() {
   //for(int i = 0; i < nWoods; ++i) woods.add(new Wood(player.pos.x+(int)random(-50, 50), player.pos.y+(int)random(-50, 50)));
   offset = new PVector(width / 2 - (int) player.pos.x * tileSize, height / 2 - (int) player.pos.y * tileSize);
 
-  endGame = true;
+  endGame = false;
   updateScreen();
 }
 
